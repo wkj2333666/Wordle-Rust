@@ -1,4 +1,6 @@
 use std::io::{self, Write};
+mod builtin_words;
+mod game;
 
 /// The main function for the Wordle game, implement your own logic here
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,11 +24,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Welcome to wordle, {}!", line.trim());
 
     // example: print arguments
-    print!("Command line arguments: ");
-    for arg in std::env::args() {
-        print!("{} ", arg);
-    }
+    // print!("Command line arguments: ");
+    // for arg in std::env::args() {
+    //     print!("{} ", arg);
+    // }
     // TODO: parse the arguments in `args`
+    game::start_game();
 
     Ok(())
 }
