@@ -46,23 +46,71 @@ impl GuessResult {
         }
     }
 
-    fn print(&self) {
+    fn print(&self, is_tty: bool) {
         for (status, guess_char) in self.status.iter().zip(self.content.chars()) {
             match status {
-                CharStatus::Correct => print!("{}", guess_char.to_string().color("green")),
-                CharStatus::WrongPosition => print!("{}", guess_char.to_string().color("yellow")),
-                CharStatus::TooMany => print!("{}", guess_char.to_string().color("red")),
-                CharStatus::Unknown => print!("{}", guess_char),
+                CharStatus::Correct => {
+                    if is_tty {
+                        print!("{}", guess_char.to_string().color("green"))
+                    } else {
+                        print!("G")
+                    }
+                }
+                CharStatus::WrongPosition => {
+                    if is_tty {
+                        print!("{}", guess_char.to_string().color("yellow"))
+                    } else {
+                        print!("Y")
+                    }
+                }
+                CharStatus::TooMany => {
+                    if is_tty {
+                        print!("{}", guess_char.to_string().color("red"))
+                    } else {
+                        print!("R")
+                    }
+                }
+                CharStatus::Unknown => {
+                    if is_tty {
+                        print!("{}", guess_char)
+                    } else {
+                        print!("X")
+                    }
+                }
             }
         }
         print!(" ");
 
         for (key, status) in self.keyboard.iter() {
             match status {
-                CharStatus::Correct => print!("{}", key.to_string().color("green")),
-                CharStatus::WrongPosition => print!("{}", key.to_string().color("yellow")),
-                CharStatus::TooMany => print!("{}", key.to_string().color("red")),
-                CharStatus::Unknown => print!("{}", key),
+                CharStatus::Correct => {
+                    if is_tty {
+                        print!("{}", key.to_string().color("green"))
+                    } else {
+                        print!("G")
+                    }
+                }
+                CharStatus::WrongPosition => {
+                    if is_tty {
+                        print!("{}", key.to_string().color("yellow"))
+                    } else {
+                        print!("Y")
+                    }
+                }
+                CharStatus::TooMany => {
+                    if is_tty {
+                        print!("{}", key.to_string().color("red"))
+                    } else {
+                        print!("R")
+                    }
+                }
+                CharStatus::Unknown => {
+                    if is_tty {
+                        print!("{}", key)
+                    } else {
+                        print!("X")
+                    }
+                }
             }
         }
         println!();
@@ -88,9 +136,13 @@ impl Guess {
         }
     }
 
-    fn print(&self) {
-        for guess in &self.history {
-            guess.print();
+    fn print(&self, is_tty: bool) {
+        if is_tty {
+            for guess in &self.history {
+                guess.print(is_tty);
+            }
+        } else {
+            self.history.last().unwrap().print(is_tty);
         }
     }
 }
@@ -163,7 +215,7 @@ impl<'a> AnsChecker<'a> {
     }
 }
 
-pub fn start_game() {
+pub fn start_game(is_tty: bool) {
     let mut rng = rand::rng();
 
     let final_length = builtin_words::FINAL.len();
@@ -190,7 +242,7 @@ pub fn start_game() {
             AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
 
         // render output
-        guess_results.print();
+        guess_results.print(is_tty);
 
         attempt += 1;
         if game_win {
