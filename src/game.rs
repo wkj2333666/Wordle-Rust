@@ -219,7 +219,19 @@ pub fn start_game(is_tty: bool) {
     let mut rng = rand::rng();
 
     let final_length = builtin_words::FINAL.len();
-    let ans = builtin_words::FINAL[rng.random_range(0..final_length)];
+    let ans = if is_tty {
+        builtin_words::FINAL[rng.random_range(0..final_length)].to_string()
+    } else {
+        loop {
+            let mut tmp = String::new();
+            io::stdin().read_line(&mut tmp).unwrap();
+            tmp = tmp.trim().to_string();
+            if builtin_words::FINAL.contains(&tmp.as_str()) {
+                break tmp;
+            }
+            println!("INVALID");
+        }
+    };
 
     let mut attempt = 0;
     let mut guess_results = Guess::new();
@@ -233,7 +245,7 @@ pub fn start_game(is_tty: bool) {
             if builtin_words::ACCEPTABLE.contains(&tmp.as_str()) {
                 break tmp;
             }
-            println!("INVALID!");
+            println!("INVALID");
         };
 
         // check
