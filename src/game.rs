@@ -51,28 +51,28 @@ impl GuessResult {
             match status {
                 CharStatus::Correct => {
                     if is_tty {
-                        print!("{}", guess_char.to_string().color("green"))
+                        print!("{}", guess_char.to_string().to_uppercase().color("green"))
                     } else {
                         print!("G")
                     }
                 }
                 CharStatus::WrongPosition => {
                     if is_tty {
-                        print!("{}", guess_char.to_string().color("yellow"))
+                        print!("{}", guess_char.to_string().to_uppercase().color("yellow"))
                     } else {
                         print!("Y")
                     }
                 }
                 CharStatus::TooMany => {
                     if is_tty {
-                        print!("{}", guess_char.to_string().color("red"))
+                        print!("{}", guess_char.to_string().to_uppercase().color("red"))
                     } else {
                         print!("R")
                     }
                 }
                 CharStatus::Unknown => {
                     if is_tty {
-                        print!("{}", guess_char)
+                        print!("{}", guess_char.to_string().to_uppercase())
                     } else {
                         print!("X")
                     }
@@ -85,28 +85,28 @@ impl GuessResult {
             match status {
                 CharStatus::Correct => {
                     if is_tty {
-                        print!("{}", key.to_string().color("green"))
+                        print!("{}", key.to_string().to_uppercase().color("green"))
                     } else {
                         print!("G")
                     }
                 }
                 CharStatus::WrongPosition => {
                     if is_tty {
-                        print!("{}", key.to_string().color("yellow"))
+                        print!("{}", key.to_string().to_uppercase().color("yellow"))
                     } else {
                         print!("Y")
                     }
                 }
                 CharStatus::TooMany => {
                     if is_tty {
-                        print!("{}", key.to_string().color("red"))
+                        print!("{}", key.to_string().to_uppercase().color("red"))
                     } else {
                         print!("R")
                     }
                 }
                 CharStatus::Unknown => {
                     if is_tty {
-                        print!("{}", key)
+                        print!("{}", key.to_string().to_uppercase())
                     } else {
                         print!("X")
                     }
@@ -262,5 +262,5 @@ pub fn start_game(is_tty: bool) {
             return;
         }
     }
-    println!("FAILED {ans}");
+    println!("FAILED {}", ans.to_uppercase());
 }
