@@ -15,6 +15,18 @@ pub struct Args {
     /// Use difficult mode
     #[arg(short = 'D', long)]
     pub difficult: bool,
+
+    /// record statistical data of the game
+    #[arg(short = 't', long)]
+    pub stats: bool,
+
+    /// Set the day of the game
+    #[arg(short, long, default_value = "1")]
+    pub day: Option<u32>,
+
+    /// Set the seed of the game
+    #[arg(short, long, default_value = "114514")]
+    pub seed: Option<u64>,
 }
 
 impl Args {
@@ -23,6 +35,17 @@ impl Args {
             eprintln!("Cannot specify both -w and -r");
             return false;
         }
+
+        if !self.random && self.seed.is_some() {
+            eprintln!("Cannot specify -s without -r");
+            return false;
+        }
+
+        if !self.random && self.day.is_some() {
+            eprintln!("Cannot specify -d without -r");
+            return false;
+        }
+
         true
     }
 }

@@ -1,5 +1,6 @@
 use crate::args::Args;
 use crate::builtin_words;
+use crate::recorder::GameRecorder;
 use colored::Colorize;
 use itertools::izip;
 use rand::Rng;
@@ -8,7 +9,7 @@ use std::{
     io,
 };
 
-const MAX_ATTEMPTS: usize = 6;
+const MAX_ATTEMPTS: u32 = 6;
 const WORD_LENGTH: usize = 5;
 
 #[derive(Copy, Clone, PartialEq)]
@@ -171,8 +172,8 @@ impl Guess {
         }
 
         // check for WrongPlace char
-        let mut last_guess_counts: HashMap<char, usize> = HashMap::new();
-        let mut this_guess_counts: HashMap<char, usize> = HashMap::new();
+        let mut last_guess_counts: HashMap<char, u32> = HashMap::new();
+        let mut this_guess_counts: HashMap<char, u32> = HashMap::new();
         for (last_guess_char, last_guess_status) in izip!(
             self.history.last().unwrap().content.chars(),
             self.history.last().unwrap().status.iter(),
@@ -264,9 +265,11 @@ impl<'a> AnsChecker<'a> {
     }
 }
 
-pub fn start_game(is_tty: bool, args: &Args) {
+pub fn start_game(is_tty: bool, args: &Args, game_recorder: &mut GameRecorder) {
     let mut rng = rand::rng();
+    let mut game_win = false;
 
+    // Set answer
     let final_length = builtin_words::FINAL.len();
     let ans = if args.random {
         builtin_words::FINAL[rng.random_range(0..final_length)].to_string()
@@ -290,8 +293,9 @@ pub fn start_game(is_tty: bool, args: &Args) {
     let mut attempt = 0;
     let mut guess_results = Guess::new();
 
+    // Guess until exceeds MAX_ATTEMPTS
     while attempt < MAX_ATTEMPTS {
-        // input
+        // input guess
         let guess = loop {
             let mut tmp: String = String::new();
             io::stdin().read_line(&mut tmp).unwrap();
@@ -303,20 +307,27 @@ pub fn start_game(is_tty: bool, args: &Args) {
             }
             println!("INVALID");
         };
+        game_recorder.add_tried_word(guess.clone());
 
-        // check
+        // check guess
         guess_results.append(&guess);
-        let game_win: bool =
-            AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
+        game_win = AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
 
         // render output
         guess_results.print(is_tty);
 
         attempt += 1;
         if game_win {
-            println!("CORRECT {attempt}");
-            return;
+            break;
         }
     }
-    println!("FAILED {}", ans.to_uppercase());
+
+    // Record this game
+    game_recorder.add_game(game_win, attempt);
+
+    if game_win {
+        println!("CORRECT {attempt}");
+    } else {
+        println!("FAILED {}", ans.to_uppercase());
+    }
 }
