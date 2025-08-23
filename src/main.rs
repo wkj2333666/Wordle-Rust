@@ -1,13 +1,16 @@
+use clap::Parser;
 use std::io;
+mod args;
+use args::Args;
 mod builtin_words;
 mod game;
 
-/// The main function for the Wordle game, implement your own logic here
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let is_tty = atty::is(atty::Stream::Stdout);
-
+fn game_loop(is_tty: bool, args: &Args) {
     loop {
-        game::start_game(is_tty);
+        game::start_game(is_tty, args);
+        if let Some(_) = &args.word {
+            break;
+        }
 
         let play_again = loop {
             let mut buf = String::new();
@@ -28,6 +31,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             break;
         }
     }
+}
+
+/// The main function for the Wordle game, implement your own logic here
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let is_tty = atty::is(atty::Stream::Stdout);
+    let args = Args::parse();
+    game_loop(is_tty, &args);
 
     Ok(())
 }

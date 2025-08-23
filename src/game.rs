@@ -1,3 +1,4 @@
+use crate::args::Args;
 use crate::builtin_words;
 use colored::Colorize;
 use rand::Rng;
@@ -215,21 +216,26 @@ impl<'a> AnsChecker<'a> {
     }
 }
 
-pub fn start_game(is_tty: bool) {
+pub fn start_game(is_tty: bool, args: &Args) {
     let mut rng = rand::rng();
 
     let final_length = builtin_words::FINAL.len();
-    let ans = if is_tty {
+    let ans = if args.random {
         builtin_words::FINAL[rng.random_range(0..final_length)].to_string()
     } else {
-        loop {
-            let mut tmp = String::new();
-            io::stdin().read_line(&mut tmp).unwrap();
-            tmp = tmp.trim().to_string();
-            if builtin_words::FINAL.contains(&tmp.as_str()) {
-                break tmp;
+        if let Some(given_answer) = &args.word {
+            assert!(builtin_words::FINAL.contains(&given_answer.as_str()));
+            given_answer.clone()
+        } else {
+            loop {
+                let mut tmp = String::new();
+                io::stdin().read_line(&mut tmp).unwrap();
+                tmp = tmp.trim().to_string();
+                if builtin_words::FINAL.contains(&tmp.as_str()) {
+                    break tmp;
+                }
+                println!("INVALID");
             }
-            println!("INVALID");
         }
     };
 
