@@ -34,9 +34,13 @@ pub struct Args {
     #[arg(short, long, default_value = "114514", requires = "random")]
     pub seed: Option<u64>,
 
-    /// Specify the final words library
-    #[arg(short, long, default_value = "words.txt")]
-    pub final_set: String,
+    /// Specify the final words list
+    #[arg(short, long)]
+    pub final_set: Option<String>,
+
+    /// Specify the acceptable words list
+    #[arg(short, long)]
+    pub acceptable_set: Option<String>,
 }
 
 // impl Args {

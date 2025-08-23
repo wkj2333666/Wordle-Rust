@@ -5,10 +5,9 @@ use colored::Colorize;
 use itertools::izip;
 use rand::SeedableRng;
 use rand::prelude::SliceRandom;
-use std::{
-    collections::{BTreeMap, HashMap},
-    io,
-};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::fs::File;
+use std::io::{self, BufRead};
 
 const MAX_ATTEMPTS: u32 = 6;
 const WORD_LENGTH: usize = 5;
@@ -266,31 +265,70 @@ impl<'a> AnsChecker<'a> {
     }
 }
 
-pub fn init_game(args: &Args, final_words: &mut Vec<&str>) {
+pub fn init_game(
+    args: &Args,
+    final_words: &mut Vec<String>,
+    acceptable: &mut Vec<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if args.final_set.is_some() {
+        let final_set_file = File::open(&args.final_set.as_ref().unwrap())?;
+        *final_words = io::BufReader::new(final_set_file)
+            .lines()
+            .map(|line| line.unwrap())
+            .collect();
+    } else {
+        *final_words = builtin_words::FINAL
+            .iter()
+            .map(|word| word.to_string())
+            .collect();
+    }
+
+    if args.acceptable_set.is_some() {
+        let acceptable_set_file = File::open(&args.acceptable_set.as_ref().unwrap())?;
+        *acceptable = io::BufReader::new(acceptable_set_file)
+            .lines()
+            .map(|line| line.unwrap())
+            .collect();
+    } else {
+        *acceptable = builtin_words::ACCEPTABLE
+            .iter()
+            .map(|word| word.to_string())
+            .collect();
+    }
+
+    // check if final is a subset of acceptable
+    let hash_set_acceptable = acceptable.iter().collect::<HashSet<_>>();
+    if !final_words
+        .iter()
+        .all(|word| hash_set_acceptable.contains(word))
+    {
+        return Err("Final words must be a subset of acceptable words!".into());
+    }
+
     if args.random {
-        builtin_words::FINAL.clone_into(final_words);
         init_shuffle(args.seed.unwrap(), final_words);
     }
+    Ok(())
 }
 
-fn init_shuffle(seed: u64, final_words: &mut Vec<&str>) {
+fn init_shuffle(seed: u64, final_words: &mut Vec<String>) {
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
     final_words.shuffle(&mut rng);
 }
 
-fn gen_answer(args: &Args, final_words: &[&str]) -> String {
+fn gen_answer(args: &Args, final_words: &Vec<String>) -> String {
     if args.random {
         final_words[args.day.unwrap() - 1 % final_words.len()].to_string()
     } else {
         if let Some(given_answer) = &args.word {
-            assert!(builtin_words::FINAL.contains(&given_answer.as_str()));
+            assert!(final_words.contains(&given_answer));
             given_answer.clone()
         } else {
             loop {
                 let mut tmp = String::new();
                 io::stdin().read_line(&mut tmp).unwrap();
                 tmp = tmp.trim().to_string();
-                if builtin_words::FINAL.contains(&tmp.as_str()) {
+                if final_words.contains(&tmp) {
                     break tmp;
                 }
                 println!("INVALID");
@@ -303,7 +341,8 @@ pub fn start_one_game(
     is_tty: bool,
     args: &Args,
     game_recorder: &mut GameRecorder,
-    final_words: &Vec<&str>,
+    final_words: &Vec<String>,
+    acceptable: &Vec<String>,
 ) {
     let mut game_win = false;
 
@@ -320,9 +359,7 @@ pub fn start_one_game(
             let mut tmp: String = String::new();
             io::stdin().read_line(&mut tmp).unwrap();
             tmp = tmp.trim().to_string();
-            if builtin_words::ACCEPTABLE.contains(&tmp.as_str())
-                && guess_results.difficult_check(args.difficult, &tmp)
-            {
+            if acceptable.contains(&tmp) && guess_results.difficult_check(args.difficult, &tmp) {
                 break tmp;
             }
             println!("INVALID");

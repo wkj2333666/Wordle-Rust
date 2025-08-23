@@ -8,11 +8,16 @@ mod builtin_words;
 mod game;
 mod recorder;
 
-fn game_loop(is_tty: bool, args: &mut Args, game_recorder: &mut recorder::GameRecorder) {
-    let mut final_words = Vec::<&str>::new();
-    init_game(args, &mut final_words);
+fn game_loop(
+    is_tty: bool,
+    args: &mut Args,
+    game_recorder: &mut recorder::GameRecorder,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut final_words = Vec::<String>::new();
+    let mut acceptable = Vec::<String>::new();
+    init_game(args, &mut final_words, &mut acceptable)?;
     loop {
-        game::start_one_game(is_tty, args, game_recorder, &final_words);
+        game::start_one_game(is_tty, args, game_recorder, &final_words, &acceptable);
         // Show stats if requested
         if args.stats {
             game_recorder.print();
@@ -47,6 +52,7 @@ fn game_loop(is_tty: bool, args: &mut Args, game_recorder: &mut recorder::GameRe
             break;
         }
     }
+    Ok(())
 }
 
 /// The main function for the Wordle game, implement your own logic here
@@ -59,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // if !args.is_validity() {
     //     return Err("Invalid arguments".into());
     // }
-    game_loop(is_tty, &mut args, &mut game_recorder);
+    game_loop(is_tty, &mut args, &mut game_recorder)?;
 
     Ok(())
 }
