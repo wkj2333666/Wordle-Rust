@@ -3,7 +3,8 @@ use crate::builtin_words;
 use crate::recorder::GameRecorder;
 use colored::Colorize;
 use itertools::izip;
-use rand::Rng;
+use rand::SeedableRng;
+use rand::prelude::SliceRandom;
 use std::{
     collections::{BTreeMap, HashMap},
     io,
@@ -265,14 +266,21 @@ impl<'a> AnsChecker<'a> {
     }
 }
 
-pub fn start_game(is_tty: bool, args: &Args, game_recorder: &mut GameRecorder) {
-    let mut rng = rand::rng();
-    let mut game_win = false;
+pub fn init_game(args: &Args, final_words: &mut Vec<&str>) {
+    if args.random {
+        builtin_words::FINAL.clone_into(final_words);
+        init_shuffle(args.seed.unwrap(), final_words);
+    }
+}
 
-    // Set answer
-    let final_length = builtin_words::FINAL.len();
-    let ans = if args.random {
-        builtin_words::FINAL[rng.random_range(0..final_length)].to_string()
+fn init_shuffle(seed: u64, final_words: &mut Vec<&str>) {
+    let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    final_words.shuffle(&mut rng);
+}
+
+fn gen_answer(args: &Args, final_words: &[&str]) -> String {
+    if args.random {
+        final_words[args.day.unwrap() - 1 % final_words.len()].to_string()
     } else {
         if let Some(given_answer) = &args.word {
             assert!(builtin_words::FINAL.contains(&given_answer.as_str()));
@@ -288,7 +296,19 @@ pub fn start_game(is_tty: bool, args: &Args, game_recorder: &mut GameRecorder) {
                 println!("INVALID");
             }
         }
-    };
+    }
+}
+
+pub fn start_one_game(
+    is_tty: bool,
+    args: &Args,
+    game_recorder: &mut GameRecorder,
+    final_words: &Vec<&str>,
+) {
+    let mut game_win = false;
+
+    // Set answer
+    let ans = gen_answer(args, final_words);
 
     let mut attempt = 0;
     let mut guess_results = Guess::new();

@@ -2,16 +2,25 @@ use clap::Parser;
 use std::io;
 mod args;
 use args::Args;
+
+use crate::game::init_game;
 mod builtin_words;
 mod game;
 mod recorder;
 
-fn game_loop(is_tty: bool, args: &Args, game_recorder: &mut recorder::GameRecorder) {
+fn game_loop(is_tty: bool, args: &mut Args, game_recorder: &mut recorder::GameRecorder) {
+    let mut final_words = Vec::<&str>::new();
+    init_game(args, &mut final_words);
     loop {
-        game::start_game(is_tty, args, game_recorder);
+        game::start_one_game(is_tty, args, game_recorder, &final_words);
         // Show stats if requested
         if args.stats {
             game_recorder.print();
+        }
+
+        // Day++
+        if args.day.is_some() {
+            args.day = Some(args.day.unwrap() + 1);
         }
 
         // Do not play again if word is specified
@@ -44,13 +53,13 @@ fn game_loop(is_tty: bool, args: &Args, game_recorder: &mut recorder::GameRecord
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // init
     let is_tty = atty::is(atty::Stream::Stdout);
-    let args = Args::parse();
+    let mut args = Args::parse();
     let mut game_recorder = recorder::GameRecorder::new();
 
-    if !args.is_validity() {
-        return Err("Invalid arguments".into());
-    }
-    game_loop(is_tty, &args, &mut game_recorder);
+    // if !args.is_validity() {
+    //     return Err("Invalid arguments".into());
+    // }
+    game_loop(is_tty, &mut args, &mut game_recorder);
 
     Ok(())
 }

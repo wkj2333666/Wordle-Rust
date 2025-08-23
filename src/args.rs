@@ -5,7 +5,13 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Specify the answer, conflicts with -r
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        conflicts_with = "random",
+        conflicts_with = "day",
+        conflicts_with = "seed"
+    )]
     pub word: Option<String>,
 
     /// Use random answer, conflicts with -w
@@ -16,36 +22,40 @@ pub struct Args {
     #[arg(short = 'D', long)]
     pub difficult: bool,
 
-    /// record statistical data of the game
+    /// Record statistical data of the game
     #[arg(short = 't', long)]
     pub stats: bool,
 
     /// Set the day of the game
-    #[arg(short, long, default_value = "1")]
-    pub day: Option<u32>,
+    #[arg(short, long, default_value = "1", requires = "random")]
+    pub day: Option<usize>,
 
     /// Set the seed of the game
-    #[arg(short, long, default_value = "114514")]
+    #[arg(short, long, default_value = "114514", requires = "random")]
     pub seed: Option<u64>,
+
+    /// Specify the final words library
+    #[arg(short, long, default_value = "words.txt")]
+    pub final_set: String,
 }
 
-impl Args {
-    pub fn is_validity(&self) -> bool {
-        if self.word.is_some() && self.random {
-            eprintln!("Cannot specify both -w and -r");
-            return false;
-        }
+// impl Args {
+//     // pub fn is_validity(&self) -> bool {
+//     //     if self.word.is_some() && self.random {
+//     //         eprintln!("Cannot specify both -w and -r");
+//     //         return false;
+//     //     }
 
-        if !self.random && self.seed.is_some() {
-            eprintln!("Cannot specify -s without -r");
-            return false;
-        }
+//     //     if !self.random && self.seed.is_some() {
+//     //         eprintln!("Cannot specify -s without -r");
+//     //         return false;
+//     //     }
 
-        if !self.random && self.day.is_some() {
-            eprintln!("Cannot specify -d without -r");
-            return false;
-        }
+//     //     if !self.random && self.day.is_some() {
+//     //         eprintln!("Cannot specify -d without -r");
+//     //         return false;
+//     //     }
 
-        true
-    }
-}
+//     //     true
+//     // }
+// }
