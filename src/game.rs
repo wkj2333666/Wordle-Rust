@@ -1,6 +1,7 @@
 use crate::args::Args;
 use crate::builtin_words;
 use colored::Colorize;
+use itertools::izip;
 use rand::Rng;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -39,6 +40,7 @@ impl GuessResult {
         new_self
     }
 
+    /// Clone the last keyboard, but with the new content and unknown status
     fn clone(&self, _content: &str) -> Self {
         Self {
             content: _content.to_string(),
@@ -146,6 +148,52 @@ impl Guess {
             self.history.last().unwrap().print(is_tty);
         }
     }
+
+    /// check if the new guess is valid in difficult mode
+    fn difficult_check(&mut self, is_difficult: bool, guess: &str) -> bool {
+        if !is_difficult {
+            return true;
+        }
+
+        if self.history.is_empty() {
+            return true;
+        }
+
+        // check for Correct char
+        for (last_guess_result, last_guess_char, this_guess_char) in izip!(
+            self.history.last().unwrap().status.iter(),
+            self.history.last().unwrap().content.chars(),
+            guess.chars()
+        ) {
+            if *last_guess_result == CharStatus::Correct && this_guess_char != last_guess_char {
+                return false;
+            }
+        }
+
+        // check for WrongPlace char
+        let mut last_guess_counts: HashMap<char, usize> = HashMap::new();
+        let mut this_guess_counts: HashMap<char, usize> = HashMap::new();
+        for (last_guess_char, last_guess_status) in izip!(
+            self.history.last().unwrap().content.chars(),
+            self.history.last().unwrap().status.iter(),
+        ) {
+            if *last_guess_status == CharStatus::WrongPosition
+                || *last_guess_status == CharStatus::Correct
+            {
+                *last_guess_counts.entry(last_guess_char).or_insert(0) += 1;
+            }
+        }
+        for this_guess_char in guess.chars() {
+            *this_guess_counts.entry(this_guess_char).or_insert(0) += 1;
+        }
+        for (last_guess_char, last_guess_char_count) in last_guess_counts {
+            if last_guess_char_count > *this_guess_counts.get(&last_guess_char).unwrap_or(&0) {
+                return false;
+            }
+        }
+
+        true
+    }
 }
 
 struct AnsChecker<'a> {
@@ -248,7 +296,9 @@ pub fn start_game(is_tty: bool, args: &Args) {
             let mut tmp: String = String::new();
             io::stdin().read_line(&mut tmp).unwrap();
             tmp = tmp.trim().to_string();
-            if builtin_words::ACCEPTABLE.contains(&tmp.as_str()) {
+            if builtin_words::ACCEPTABLE.contains(&tmp.as_str())
+                && guess_results.difficult_check(args.difficult, &tmp)
+            {
                 break tmp;
             }
             println!("INVALID");

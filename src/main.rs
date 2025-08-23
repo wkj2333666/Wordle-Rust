@@ -8,7 +8,7 @@ mod game;
 fn game_loop(is_tty: bool, args: &Args) {
     loop {
         game::start_game(is_tty, args);
-        if let Some(_) = &args.word {
+        if args.word.is_some() {
             break;
         }
 
@@ -37,6 +37,9 @@ fn game_loop(is_tty: bool, args: &Args) {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_tty = atty::is(atty::Stream::Stdout);
     let args = Args::parse();
+    if !args.is_validity() {
+        return Err("Invalid arguments".into());
+    }
     game_loop(is_tty, &args);
 
     Ok(())
