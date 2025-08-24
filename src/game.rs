@@ -457,5 +457,10 @@ pub fn load_game(
         }
     }
 
+    // even if there is no config file, a default seed must be specified
+    if args.random && args.seed.is_none() {
+        args.seed = Some(114514);
+    }
+
     Ok(())
 }
