@@ -1,13 +1,14 @@
 use crate::args::Args;
+use crate::args::Config;
 use crate::builtin_words;
-use crate::recorder::GameRecorder;
+use crate::recorder::{GameData, GameRecorder, SingleGameData};
 use colored::Colorize;
 use itertools::izip;
 use rand::SeedableRng;
 use rand::prelude::SliceRandom;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader};
 
 const MAX_ATTEMPTS: u32 = 6;
 const WORD_LENGTH: usize = 5;
@@ -20,8 +21,8 @@ enum CharStatus {
     Unknown,
 }
 
-struct GuessResult {
-    content: String,
+pub struct GuessResult {
+    pub content: String,
     status: [CharStatus; WORD_LENGTH],
     keyboard: BTreeMap<char, CharStatus>,
 }
@@ -121,8 +122,8 @@ impl GuessResult {
     }
 }
 
-struct Guess {
-    history: Vec<GuessResult>,
+pub struct Guess {
+    pub history: Vec<GuessResult>,
 }
 
 impl Guess {
@@ -343,6 +344,7 @@ pub fn start_one_game(
     game_recorder: &mut GameRecorder,
     final_words: &Vec<String>,
     acceptable: &Vec<String>,
+    game_data: &mut GameData,
 ) {
     let mut game_win = false;
 
@@ -381,10 +383,65 @@ pub fn start_one_game(
 
     // Record this game
     game_recorder.add_game(game_win, attempt);
+    game_data.add_game(&guess_results, &ans);
 
     if game_win {
         println!("CORRECT {attempt}");
     } else {
         println!("FAILED {}", ans.to_uppercase());
     }
+}
+
+pub fn load_game(
+    args: &mut Args,
+    game_recorder: &mut GameRecorder,
+    game_data: &mut GameData,
+) -> Result<(), std::io::Error> {
+    if args.state.is_some() {
+        if let Result::Ok(data_file) = File::open(args.state.as_ref().unwrap()) {
+            *game_data = serde_json::from_reader(BufReader::new(data_file))?;
+        } // else: no such file, ignore, and use a empty game data
+
+        for SingleGameData {
+            answer: game_answer,
+            guesses: game_guesses,
+        } in &game_data.games
+        {
+            let is_game_win = game_answer == game_guesses.last().unwrap();
+            game_recorder.add_game(is_game_win, game_guesses.len() as u32);
+            for one_guess in game_guesses {
+                game_recorder.add_tried_word(one_guess.clone().to_lowercase());
+            }
+        }
+    }
+
+    // load config
+    if let Some(config_path) = args.config.as_ref() {
+        let config_file = File::open(config_path)?;
+        let config: Config = serde_json::from_reader(BufReader::new(config_file))?;
+
+        if args.word.is_none() {
+            args.word = config.word;
+        }
+        if args.random == false {
+            args.random = config.random;
+        }
+        if args.difficult == false {
+            args.difficult = config.difficult;
+        }
+        if args.stats == false {
+            args.stats = config.stats;
+        }
+        if args.day.is_none() {
+            args.day = config.day;
+        }
+        if args.seed.is_none() {
+            args.seed = config.seed;
+        }
+        if args.final_set.is_none() {
+            args.final_set = config.final_set;
+        }
+    }
+
+    Ok(())
 }

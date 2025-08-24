@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -84,5 +85,48 @@ impl GameRecorder {
         println!("{} {} {:.2}", self.win, self.lose, average_attempts);
         self.print_top_5_words();
         println!();
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SingleGameData {
+    pub answer: String,
+    pub guesses: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GameData {
+    #[serde(default)]
+    pub total_rounds: u32,
+
+    #[serde(default)]
+    pub games: Vec<SingleGameData>,
+}
+
+impl GameData {
+    pub fn new() -> Self {
+        GameData {
+            total_rounds: 0,
+            games: Vec::new(),
+        }
+    }
+
+    pub fn add_game(&mut self, guess_results: &crate::game::Guess, ans: &str) {
+        self.total_rounds += 1;
+        self.games.push(SingleGameData {
+            answer: ans.to_string().to_uppercase(),
+            guesses: guess_results
+                .history
+                .iter()
+                .map(|guess_content| guess_content.content.clone().to_uppercase())
+                .collect(),
+        });
+    }
+
+    pub fn save(&self, args: &crate::args::Args) -> Result<(), Box<dyn std::error::Error>> {
+        let file_path = args.state.clone().unwrap();
+        let json = serde_json::to_string_pretty(self)?;
+        std::fs::write(file_path, json)?;
+        Ok(())
     }
 }

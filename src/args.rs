@@ -1,4 +1,5 @@
 use clap::Parser;
+use serde::{Deserialize, Serialize};
 
 /// A simple wordle game
 #[derive(Parser, Debug)]
@@ -41,25 +42,32 @@ pub struct Args {
     /// Specify the acceptable words list
     #[arg(short, long)]
     pub acceptable_set: Option<String>,
+
+    /// Persistent Storage
+    #[arg(short = 'S', long)]
+    pub state: Option<String>,
+
+    /// Set configuration file
+    #[arg(short, long)]
+    pub config: Option<String>,
 }
 
-// impl Args {
-//     // pub fn is_validity(&self) -> bool {
-//     //     if self.word.is_some() && self.random {
-//     //         eprintln!("Cannot specify both -w and -r");
-//     //         return false;
-//     //     }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub word: Option<String>,
 
-//     //     if !self.random && self.seed.is_some() {
-//     //         eprintln!("Cannot specify -s without -r");
-//     //         return false;
-//     //     }
+    #[serde(default)]
+    pub random: bool,
 
-//     //     if !self.random && self.day.is_some() {
-//     //         eprintln!("Cannot specify -d without -r");
-//     //         return false;
-//     //     }
+    #[serde(default)]
+    pub difficult: bool,
 
-//     //     true
-//     // }
-// }
+    #[serde(default)]
+    pub stats: bool,
+
+    pub day: Option<usize>,
+    pub seed: Option<u64>,
+    pub final_set: Option<String>,
+    pub acceptable_set: Option<String>,
+    pub state: Option<String>,
+}
