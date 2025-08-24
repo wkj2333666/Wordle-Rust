@@ -383,7 +383,9 @@ pub fn start_one_game(
 
     // Record this game
     game_recorder.add_game(game_win, attempt);
-    game_data.add_game(&guess_results, &ans);
+    if args.state.is_some() {
+        game_data.add_game(&guess_results, &ans);
+    }
 
     if game_win {
         println!("CORRECT {attempt}");
@@ -432,14 +434,26 @@ pub fn load_game(
         if args.stats == false {
             args.stats = config.stats;
         }
-        if args.day.is_none() {
-            args.day = config.day;
-        }
-        if args.seed.is_none() {
-            args.seed = config.seed;
+        // day & seed
+        if args.word.is_none() {
+            if args.day.is_none() {
+                args.day = config.day;
+            } else {
+                args.day = Some(1);
+            }
+
+            if args.seed.is_none() {
+                args.seed = config.seed;
+            } // and if the config does not specify seed, use default value
+            if args.seed.is_none() {
+                args.seed = Some(114514);
+            }
         }
         if args.final_set.is_none() {
             args.final_set = config.final_set;
+        }
+        if args.acceptable_set.is_none() {
+            args.acceptable_set = config.acceptable_set;
         }
     }
 

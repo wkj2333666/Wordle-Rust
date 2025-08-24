@@ -76,7 +76,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut game_recorder = recorder::GameRecorder::new();
     let mut game_data = recorder::GameData::new();
 
+    if args.debug {
+        println!("{args:?}");
+    }
+
     game::load_game(&mut args, &mut game_recorder, &mut game_data)?;
+
+    if args.debug {
+        println!("{args:?}");
+        panic!();
+    }
 
     game_loop(is_tty, &mut args, &mut game_recorder, &mut game_data)?;
 

@@ -28,11 +28,11 @@ pub struct Args {
     pub stats: bool,
 
     /// Set the day of the game
-    #[arg(short, long, default_value = "1", requires = "random")]
+    #[arg(short, long, requires = "random")]
     pub day: Option<usize>,
 
     /// Set the seed of the game
-    #[arg(short, long, default_value = "114514", requires = "random")]
+    #[arg(short, long, requires = "random")]
     pub seed: Option<u64>,
 
     /// Specify the final words list
@@ -50,6 +50,10 @@ pub struct Args {
     /// Set configuration file
     #[arg(short, long)]
     pub config: Option<String>,
+
+    /// Open debug mode
+    #[arg(long)]
+    pub debug: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
