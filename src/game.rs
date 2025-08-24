@@ -458,8 +458,14 @@ pub fn load_game(
     }
 
     // even if there is no config file, a default seed must be specified
-    if args.random && args.seed.is_none() {
-        args.seed = Some(114514);
+    if args.random {
+        if args.seed.is_none() {
+            args.seed = Some(114514);
+        }
+        // so does the day
+        if args.day.is_none() {
+            args.day = Some(1);
+        }
     }
 
     Ok(())
