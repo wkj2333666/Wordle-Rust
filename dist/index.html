@@ -1,12 +1,10 @@
 <!doctype html>
 <html lang="en">
-    <head><link rel="modulepreload" href="/wordle-4e7ea50968389c8f.js" crossorigin="anonymous" integrity="sha384-aUA/cZ33tq0ijlHeE+8myrh5uZESF2/qqkAuJyIEfAvNbnxNOvgsJS674KU5a4jN"><link rel="preload" href="/wordle-4e7ea50968389c8f_bg.wasm" crossorigin="anonymous" integrity="sha384-uKriXoSvBK8aHRrPE40Ukd0+bwEUVlOFZo+w4UdN6ScreCWetBgO62c+LMUm6bDv" as="fetch" type="application/wasm"></head>
-    <body>
-        <div id="app"></div>
-    
+    <head>
+        
 <script type="module">
-import init, * as bindings from '/wordle-4e7ea50968389c8f.js';
-const wasm = await init({ module_or_path: '/wordle-4e7ea50968389c8f_bg.wasm' });
+import init, * as bindings from '/web-65252a5fff95aa25.js';
+const wasm = await init({ module_or_path: '/web-65252a5fff95aa25_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -14,7 +12,9 @@ window.wasmBindings = bindings;
 
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
-</script><script>"use strict";
+</script>
+    <link rel="modulepreload" href="/web-65252a5fff95aa25.js" crossorigin="anonymous" integrity="sha384-Z4MwkV4q+mYkRDm0icuvOeqgbZVmNkoaF/KIJEHaPn+iFE3kwln0ceZUya1FiUq1"><link rel="preload" href="/web-65252a5fff95aa25_bg.wasm" crossorigin="anonymous" integrity="sha384-bhV/HPlXKVlKmjRB+K6GtPZNXVQnftvKgBowf4HVcx9r6rWkP+BfxroAEQFnIPYE" as="fetch" type="application/wasm"></head>
+    <body><script>"use strict";
 
 (function () {
 

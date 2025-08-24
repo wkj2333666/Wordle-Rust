@@ -11,6 +11,10 @@ path = "src/main.rs"
 name = "web"
 path = "src/web/main.rs"
 
+[lib]
+name = "wordle_lib"
+path = "src/lib.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
