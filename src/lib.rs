@@ -8,11 +8,29 @@ mod builtin_words;
 mod game;
 mod recorder;
 
+struct WebInterface {
+    guess: String,
+    result: String,
+    win: Option<bool>,
+}
+
+impl WebInterface {
+    fn new() -> Self {
+        WebInterface {
+            guess: String::new(),
+            result: String::new(),
+            win: None,
+        }
+    }
+}
+
 pub struct Wordle {
     is_tty: bool,
     args: Args,
     game_recorder: recorder::GameRecorder,
     game_data: recorder::GameData,
+    web_interface: WebInterface,
+    use_web: bool,
 }
 
 impl Wordle {
@@ -22,7 +40,13 @@ impl Wordle {
             args: Args::parse(),
             game_recorder: recorder::GameRecorder::new(),
             game_data: recorder::GameData::new(),
+            web_interface: WebInterface::new(),
+            use_web: false,
         }
+    }
+
+    pub fn enable_web(&mut self) {
+        self.use_web = true;
     }
 
     fn game_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
