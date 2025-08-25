@@ -3,7 +3,6 @@ use std::io;
 mod args;
 use args::Args;
 
-use crate::game::init_game;
 mod builtin_words;
 mod game;
 mod recorder;
@@ -52,17 +51,10 @@ impl Wordle {
     fn game_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let mut final_words = Vec::<String>::new();
         let mut acceptable = Vec::<String>::new();
-        init_game(&self.args, &mut final_words, &mut acceptable)?;
+        self.init_game(&mut final_words, &mut acceptable)?;
 
         loop {
-            game::start_one_game(
-                self.is_tty,
-                &self.args,
-                &mut self.game_recorder,
-                &final_words,
-                &acceptable,
-                &mut self.game_data,
-            );
+            self.start_one_game(&final_words, &acceptable);
             // Show stats if requested
             if self.args.stats {
                 self.game_recorder.print();
@@ -108,7 +100,7 @@ impl Wordle {
     /// The main function for the Wordle game, implement your own logic here
     pub fn launch(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         // init
-        game::load_game(&mut self.args, &mut self.game_recorder, &mut self.game_data)?;
+        self.load_game()?;
 
         self.game_loop()?;
 
