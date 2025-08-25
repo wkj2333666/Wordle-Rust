@@ -1,4 +1,6 @@
 use clap::Parser;
+
+#[cfg(not(target_arch = "wasm32"))]
 use serde::{Deserialize, Serialize};
 
 /// A simple wordle game
@@ -56,6 +58,7 @@ pub struct Args {
     pub debug: bool,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub word: Option<String>,

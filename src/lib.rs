@@ -1,23 +1,32 @@
-use crate::args::Config;
-use crate::game::{AnsChecker, Guess, MAX_ATTEMPTS};
-use crate::recorder::SingleGameData;
-use clap::Parser;
-use std::collections::HashSet;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
 mod args;
-use args::Args;
-
 mod builtin_words;
 mod game;
 mod recorder;
 
+#[cfg(not(target_arch = "wasm32"))]
+use crate::args::Config;
+use crate::game::{AnsChecker, Guess, MAX_ATTEMPTS};
+use crate::recorder::SingleGameData;
+use args::Args;
+use clap::Parser;
+#[cfg(not(target_arch = "wasm32"))]
+use std::collections::HashSet;
+#[cfg(not(target_arch = "wasm32"))]
+use std::fs::File;
+#[cfg(not(target_arch = "wasm32"))]
+use std::io::{self, BufRead, BufReader};
+
+#[cfg(target_arch = "wasm32")]
+use chrono::Local;
+
+#[cfg(target_arch = "wasm32")]
 struct WebInterface {
     guess: String,
     result: String,
     win: Option<bool>,
 }
 
+#[cfg(target_arch = "wasm32")]
 impl WebInterface {
     fn new() -> Self {
         WebInterface {
@@ -28,31 +37,64 @@ impl WebInterface {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 pub struct Wordle {
     is_tty: bool,
     args: Args,
     game_recorder: recorder::GameRecorder,
     game_data: recorder::GameData,
     web_interface: WebInterface,
-    use_web: bool,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub struct Wordle {
+    is_tty: bool,
+    args: Args,
+    game_recorder: recorder::GameRecorder,
+    game_data: recorder::GameData,
 }
 
 impl Wordle {
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new() -> Self {
         Wordle {
             is_tty: atty::is(atty::Stream::Stdout),
             args: Args::parse(),
             game_recorder: recorder::GameRecorder::new(),
             game_data: recorder::GameData::new(),
-            web_interface: WebInterface::new(),
-            use_web: false,
         }
     }
 
-    pub fn enable_web(&mut self) {
-        self.use_web = true;
+    #[cfg(target_arch = "wasm32")]
+    pub fn new() -> Self {
+        Wordle {
+            is_tty: atty::is(atty::Stream::Stdout),
+            args: Args {
+                word: None,
+                random: true,
+                difficult: false,
+                stats: true,
+                day: Some(1),
+                seed: Some(
+                    Local::now()
+                        .format("%Y%m%d")
+                        .to_string()
+                        .parse::<u64>()
+                        .unwrap(),
+                ),
+                final_set: None,
+                acceptable_set: None,
+                state: None,
+                config: None,
+                debug: false,
+            },
+            game_recorder: recorder::GameRecorder::new(),
+            game_data: recorder::GameData::new(),
+            web_interface: WebInterface::new(),
+        }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn game_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let mut final_words = Vec::<String>::new();
         let mut acceptable = Vec::<String>::new();
@@ -102,6 +144,7 @@ impl Wordle {
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     /// The main function for the Wordle game, implement your own logic here
     pub fn launch(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         // init
@@ -112,7 +155,8 @@ impl Wordle {
         Ok(())
     }
 
-    pub fn init_game(
+    #[cfg(not(target_arch = "wasm32"))]
+    fn init_game(
         &mut self,
         final_words: &mut Vec<String>,
         acceptable: &mut Vec<String>,
@@ -179,7 +223,8 @@ impl Wordle {
         }
     }
 
-    pub fn start_one_game(&mut self, final_words: &Vec<String>, acceptable: &Vec<String>) {
+    #[cfg(not(target_arch = "wasm32"))]
+    fn start_one_game(&mut self, final_words: &Vec<String>, acceptable: &Vec<String>) {
         let mut game_win = false;
 
         // Set answer
@@ -190,26 +235,7 @@ impl Wordle {
 
         // Guess until exceeds MAX_ATTEMPTS
         while attempt < MAX_ATTEMPTS {
-            // input guess
-            let guess = loop {
-                let mut tmp: String = String::new();
-                io::stdin().read_line(&mut tmp).unwrap();
-                tmp = tmp.trim().to_string();
-                if acceptable.contains(&tmp)
-                    && guess_results.difficult_check(self.args.difficult, &tmp)
-                {
-                    break tmp;
-                }
-                println!("INVALID");
-            };
-            self.game_recorder.add_tried_word(guess.clone());
-
-            // check guess
-            guess_results.append(&guess);
-            game_win = AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
-
-            // render output
-            guess_results.print(self.is_tty);
+            game_win = self.handle_one_guess(acceptable, &mut guess_results, &ans);
 
             attempt += 1;
             if game_win {
@@ -230,7 +256,37 @@ impl Wordle {
         }
     }
 
-    pub fn load_game(&mut self) -> Result<(), std::io::Error> {
+    fn handle_one_guess(
+        &mut self,
+        acceptable: &Vec<String>,
+        guess_results: &mut Guess,
+        ans: &str,
+    ) -> bool {
+        // input guess
+        let guess = loop {
+            let mut tmp: String = String::new();
+            io::stdin().read_line(&mut tmp).unwrap();
+            tmp = tmp.trim().to_string();
+            if acceptable.contains(&tmp) && guess_results.difficult_check(self.args.difficult, &tmp)
+            {
+                break tmp;
+            }
+            println!("INVALID");
+        };
+        self.game_recorder.add_tried_word(guess.clone());
+
+        // check guess
+        guess_results.append(&guess);
+        let game_win = AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
+
+        // render output
+        guess_results.print(self.is_tty);
+
+        game_win
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn load_game(&mut self) -> Result<(), std::io::Error> {
         if self.args.state.is_some() {
             if let Result::Ok(data_file) = File::open(self.args.state.as_ref().unwrap()) {
                 self.game_data = serde_json::from_reader(BufReader::new(data_file))?;
