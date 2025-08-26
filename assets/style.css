@@ -1,0 +1,74 @@
+body {
+    background-color: #121213;
+    color: #d7dadc;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.board {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    grid-gap: 5px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.keyboard {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    grid-gap: 5px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 5px;
+}
+
+.tile {
+    width: 62px;
+    height: 62px;
+    border: 2px solid #3a3a3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    transition: transform 0.3s ease-in-out;
+}
+
+.tile.correct {
+    background-color: #538d4e;
+    border-color: #538d4e;
+    color: white;
+}
+
+.tile.misplaced {
+    background-color: #b59f3b;
+    border-color: #b59f3b;
+    color: white;
+}
+
+.tile.wrong {
+    background-color: #9a3030;
+    border-color: #9a3030;
+    color: white;
+}
+
+.tile.unknown {
+    background-color: #3a3a3c;
+    border-color: #3a3a3c;
+    color: white;
+}
+
+.tile.flip {
+    transform: rotateX(360deg);
+}

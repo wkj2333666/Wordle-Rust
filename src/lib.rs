@@ -202,6 +202,12 @@ impl Wordle {
         Ok(())
     }
 
+    #[cfg(target_arch = "wasm32")]
+    fn gen_answer(&self, final_words: &Vec<String>) -> String {
+        final_words[self.args.day.unwrap() - 1 % final_words.len()].to_string()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn gen_answer(&self, final_words: &Vec<String>) -> String {
         if self.args.random {
             final_words[self.args.day.unwrap() - 1 % final_words.len()].to_string()
@@ -256,6 +262,8 @@ impl Wordle {
         }
     }
 
+    // temporary
+    #[cfg(not(target_arch = "wasm32"))]
     fn handle_one_guess(
         &mut self,
         acceptable: &Vec<String>,
