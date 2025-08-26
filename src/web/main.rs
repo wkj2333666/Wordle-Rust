@@ -1,9 +1,9 @@
-use app::App;
-// use yew::prelude;
-
+// #[cfg(target_arch = "wasm32")]
 mod app;
+// #[cfg(target_arch = "wasm32")]
 mod board;
 
 fn main() {
-    yew::Renderer::<App>::new().render();
+    // #[cfg(target_arch = "wasm32")]
+    yew::Renderer::<app::App>::new().render();
 }

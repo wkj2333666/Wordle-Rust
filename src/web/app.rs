@@ -5,6 +5,7 @@ use yew::prelude::*;
 pub struct App {
     board: Board,
     keyboard: Keyboard,
+    attempts: usize,
 }
 
 impl Component for App {
@@ -15,6 +16,7 @@ impl Component for App {
         Self {
             board: Board::new(),
             keyboard: Keyboard::new(),
+            attempts: 0,
         }
     }
 

@@ -4,11 +4,11 @@ use std::collections::HashMap;
 
 struct GameStat {
     win: bool,
-    attempts: u32,
+    attempts: usize,
 }
 
 impl GameStat {
-    fn new(win: bool, attempts: u32) -> Self {
+    fn new(win: bool, attempts: usize) -> Self {
         Self { win, attempts }
     }
 }
@@ -30,7 +30,7 @@ impl GameRecorder {
         }
     }
 
-    pub fn add_game(&mut self, win: bool, attempts: u32) {
+    pub fn add_game(&mut self, win: bool, attempts: usize) {
         self.games.push(GameStat::new(win, attempts));
         if win {
             self.win += 1;

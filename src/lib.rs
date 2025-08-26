@@ -1,6 +1,6 @@
 mod args;
 mod builtin_words;
-mod game;
+pub mod game;
 mod recorder;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -306,8 +306,7 @@ impl Wordle {
             } in &self.game_data.games
             {
                 let is_game_win = game_answer == game_guesses.last().unwrap();
-                self.game_recorder
-                    .add_game(is_game_win, game_guesses.len() as u32);
+                self.game_recorder.add_game(is_game_win, game_guesses.len());
                 for one_guess in game_guesses {
                     self.game_recorder
                         .add_tried_word(one_guess.clone().to_lowercase());

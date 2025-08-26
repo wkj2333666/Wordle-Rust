@@ -4,21 +4,21 @@ use rand::SeedableRng;
 use rand::prelude::SliceRandom;
 use std::collections::{BTreeMap, HashMap};
 
-pub const MAX_ATTEMPTS: u32 = 6;
+pub const MAX_ATTEMPTS: usize = 6;
 pub const WORD_LENGTH: usize = 5;
 
-#[derive(Copy, Clone, PartialEq)]
-enum CharStatus {
+#[derive(Copy, Clone, PartialEq, Debug, Eq)]
+pub enum CharStatus {
     Correct,
-    WrongPosition,
-    TooMany,
+    Misplaced,
+    Wrong,
     Unknown,
 }
 
 pub struct GuessResult {
     pub content: String,
-    status: [CharStatus; WORD_LENGTH],
-    keyboard: BTreeMap<char, CharStatus>,
+    pub status: [CharStatus; WORD_LENGTH],
+    pub keyboard: BTreeMap<char, CharStatus>,
 }
 
 impl GuessResult {
@@ -55,14 +55,14 @@ impl GuessResult {
                         print!("G")
                     }
                 }
-                CharStatus::WrongPosition => {
+                CharStatus::Misplaced => {
                     if is_tty {
                         print!("{}", guess_char.to_string().to_uppercase().color("yellow"))
                     } else {
                         print!("Y")
                     }
                 }
-                CharStatus::TooMany => {
+                CharStatus::Wrong => {
                     if is_tty {
                         print!("{}", guess_char.to_string().to_uppercase().color("red"))
                     } else {
@@ -89,14 +89,14 @@ impl GuessResult {
                         print!("G")
                     }
                 }
-                CharStatus::WrongPosition => {
+                CharStatus::Misplaced => {
                     if is_tty {
                         print!("{}", key.to_string().to_uppercase().color("yellow"))
                     } else {
                         print!("Y")
                     }
                 }
-                CharStatus::TooMany => {
+                CharStatus::Wrong => {
                     if is_tty {
                         print!("{}", key.to_string().to_uppercase().color("red"))
                     } else {
@@ -173,7 +173,7 @@ impl Guess {
             self.history.last().unwrap().content.chars(),
             self.history.last().unwrap().status.iter(),
         ) {
-            if *last_guess_status == CharStatus::WrongPosition
+            if *last_guess_status == CharStatus::Misplaced
                 || *last_guess_status == CharStatus::Correct
             {
                 *last_guess_counts.entry(last_guess_char).or_insert(0) += 1;
@@ -223,12 +223,12 @@ impl<'a> AnsChecker<'a> {
             if guess_result.status[idx] == CharStatus::Unknown
                 && *self.counts.entry(guess_char).or_insert(0) > 0
             {
-                guess_result.status[idx] = CharStatus::WrongPosition;
+                guess_result.status[idx] = CharStatus::Misplaced;
                 *self.counts.get_mut(&guess_char).unwrap() -= 1;
             } else if guess_result.status[idx] == CharStatus::Unknown
                 && *self.counts.entry(guess_char).or_insert(0) <= 0
             {
-                guess_result.status[idx] = CharStatus::TooMany;
+                guess_result.status[idx] = CharStatus::Wrong;
             }
         }
 
@@ -238,15 +238,13 @@ impl<'a> AnsChecker<'a> {
                 CharStatus::Correct => {
                     *guess_result.keyboard.get_mut(&guess_char).unwrap() = CharStatus::Correct
                 }
-                CharStatus::WrongPosition
+                CharStatus::Misplaced
                     if guess_result.keyboard[&guess_char] != CharStatus::Correct =>
                 {
-                    *guess_result.keyboard.get_mut(&guess_char).unwrap() = CharStatus::WrongPosition
+                    *guess_result.keyboard.get_mut(&guess_char).unwrap() = CharStatus::Misplaced
                 }
-                CharStatus::TooMany
-                    if guess_result.keyboard[&guess_char] == CharStatus::Unknown =>
-                {
-                    *guess_result.keyboard.get_mut(&guess_char).unwrap() = CharStatus::TooMany
+                CharStatus::Wrong if guess_result.keyboard[&guess_char] == CharStatus::Unknown => {
+                    *guess_result.keyboard.get_mut(&guess_char).unwrap() = CharStatus::Wrong
                 }
                 _ => (),
             };

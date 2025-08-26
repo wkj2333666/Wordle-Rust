@@ -1,13 +1,16 @@
+use std::collections::BTreeMap;
+
+use wordle_lib::game::{CharStatus, Guess, MAX_ATTEMPTS, WORD_LENGTH};
 use yew::prelude::*;
 
 pub struct Board {
-    lines: [Line<5>; 6],
+    lines: [Line<WORD_LENGTH>; MAX_ATTEMPTS],
 }
 
 impl Board {
     pub fn new() -> Self {
         Self {
-            lines: [Line::<5>::new(); 6],
+            lines: [Line::<WORD_LENGTH>::new(); MAX_ATTEMPTS],
         }
     }
 
@@ -17,6 +20,19 @@ impl Board {
                 { for self.lines.iter().map(|line| line.view()) }
             </div>
         }
+    }
+
+    pub fn update_from_cli(&mut self, cli_guess_results: &Guess, attempts_not_updated: usize) {
+        self.lines[attempts_not_updated] = cli_guess_results
+            .history
+            .last()
+            .unwrap()
+            .status
+            .iter()
+            .zip(cli_guess_results.history.last().unwrap().content.chars())
+            .map(|(status, letter)| (Some(letter), *status))
+            .collect::<Vec<_>>()
+            .into();
     }
 }
 
@@ -44,17 +60,26 @@ impl Keyboard {
             </div>
         }
     }
+
+    pub fn update_from_cli(&mut self, cli_guess_results: &Guess) {
+        self.line1
+            .update_from_map(&cli_guess_results.history.last().unwrap().keyboard);
+        self.line2
+            .update_from_map(&cli_guess_results.history.last().unwrap().keyboard);
+        self.line3
+            .update_from_map(&cli_guess_results.history.last().unwrap().keyboard);
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 struct Line<const LENGTH: usize> {
-    cells: [(Option<char>, Status); LENGTH],
+    cells: [(Option<char>, CharStatus); LENGTH],
 }
 
 impl<const LENGTH: usize> Line<LENGTH> {
     fn new() -> Self {
         Self {
-            cells: [(None, Status::Unknown); LENGTH],
+            cells: [(None, CharStatus::Unknown); LENGTH],
         }
     }
 
@@ -62,7 +87,7 @@ impl<const LENGTH: usize> Line<LENGTH> {
         Self {
             cells: chars
                 .into_iter()
-                .map(|c| (Some(c), Status::Unknown))
+                .map(|c| (Some(c), CharStatus::Unknown))
                 .collect::<Vec<_>>()
                 .try_into()
                 .unwrap(),
@@ -75,10 +100,10 @@ impl<const LENGTH: usize> Line<LENGTH> {
             {
                 self.cells.iter().map(|(c, s)| {
                     match (c, s) {
-                        (Some(c), Status::Correct) => html! { <span class="tile correct">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Misplaced) => html! { <span class="tile misplaced">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Wrong) => html! { <span class="tile wrong">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Unknown) => html! { <span class="tile unknown">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), CharStatus::Correct) => html! { <span class="tile correct">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), CharStatus::Misplaced) => html! { <span class="tile misplaced">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), CharStatus::Wrong) => html! { <span class="tile wrong">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), CharStatus::Unknown) => html! { <span class="tile unknown">{ c.to_string().to_uppercase() }</span> },
                         (None, _) => html! { <span class="tile unknown"> </span> },
                     }
                 })
@@ -87,12 +112,18 @@ impl<const LENGTH: usize> Line<LENGTH> {
             </div>
         }
     }
+
+    fn update_from_map(&mut self, map: &BTreeMap<char, CharStatus>) {
+        self.cells
+            .iter_mut()
+            .for_each(|cell| cell.1 = map.get(&cell.0.unwrap()).unwrap().clone());
+    }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-enum Status {
-    Unknown,
-    Correct,
-    Misplaced,
-    Wrong,
+impl<const LENGTH: usize> From<Vec<(Option<char>, CharStatus)>> for Line<LENGTH> {
+    fn from(vec: Vec<(Option<char>, CharStatus)>) -> Self {
+        Self {
+            cells: vec.try_into().unwrap(),
+        }
+    }
 }
