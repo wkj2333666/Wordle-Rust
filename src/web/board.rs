@@ -13,7 +13,7 @@ impl Board {
 
     pub fn view(&self) -> Html {
         html! {
-            <div class="row">
+            <div class="board">
                 { for self.lines.iter().map(|line| line.view()) }
             </div>
         }
@@ -29,15 +29,15 @@ pub struct Keyboard {
 impl Keyboard {
     pub fn new() -> Self {
         Self {
-            line1: Line::<10>::new(),
-            line2: Line::<9>::new(),
-            line3: Line::<7>::new(),
+            line1: Line::<10>::new_with_chars(['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']),
+            line2: Line::<9>::new_with_chars(['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l']),
+            line3: Line::<7>::new_with_chars(['z', 'x', 'c', 'v', 'b', 'n', 'm']),
         }
     }
 
     pub fn view(&self) -> Html {
         html! {
-            <div class="row">
+            <div class="keyboard">
                 { self.line1.view() }
                 { self.line2.view() }
                 { self.line3.view() }
@@ -58,17 +58,28 @@ impl<const LENGTH: usize> Line<LENGTH> {
         }
     }
 
+    fn new_with_chars(chars: [char; LENGTH]) -> Self {
+        Self {
+            cells: chars
+                .into_iter()
+                .map(|c| (Some(c), Status::Unknown))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        }
+    }
+
     fn view(&self) -> Html {
         html! {
-            <div>
+            <div class="line">
             {
                 self.cells.iter().map(|(c, s)| {
                     match (c, s) {
-                        (Some(c), Status::Correct) => html! { <span class="correct">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Misplaced) => html! { <span class="misplaced">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Wrong) => html! { <span class="wrong">{ c.to_string().to_uppercase() }</span> },
-                        (Some(c), Status::Unknown) => html! { <span class="unknown">{ c.to_string().to_uppercase() }</span> },
-                        (None, _) => html! { <span class="unknown"> </span> },
+                        (Some(c), Status::Correct) => html! { <span class="tile correct">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), Status::Misplaced) => html! { <span class="tile misplaced">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), Status::Wrong) => html! { <span class="tile wrong">{ c.to_string().to_uppercase() }</span> },
+                        (Some(c), Status::Unknown) => html! { <span class="tile unknown">{ c.to_string().to_uppercase() }</span> },
+                        (None, _) => html! { <span class="tile unknown"> </span> },
                     }
                 })
                 .collect::<Html>()

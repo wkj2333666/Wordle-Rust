@@ -22,12 +22,12 @@ impl Component for App {
         html! {
             <>
                 <h1>{ "WORDLE" }</h1>
-                <div class="board">
+                // <div class="board">
                     { self.board.view() }
-                </div>
-                <div class="keyboard">
+                // </div>
+                // <div class="keyboard">
                     { self.keyboard.view() }
-                </div>
+                // </div>
             </>
         }
     }

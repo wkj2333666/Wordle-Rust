@@ -1,0 +1,4 @@
+[build]
+public_url = "/"
+file_path = "index.html"
+assets = ["assets"]
