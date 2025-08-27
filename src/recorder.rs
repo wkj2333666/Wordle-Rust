@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 struct GameStat {
     win: bool,
     attempts: usize,
@@ -14,6 +15,7 @@ impl GameStat {
 }
 
 /// Record statical data
+#[derive(Debug)]
 pub struct GameRecorder {
     games: Vec<GameStat>,
     tried_words: HashMap<String, u32>,

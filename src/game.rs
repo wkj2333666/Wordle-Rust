@@ -15,6 +15,7 @@ pub enum CharStatus {
     Unknown,
 }
 
+#[derive(Debug)]
 pub struct GuessResult {
     pub content: String,
     pub status: [CharStatus; WORD_LENGTH],
@@ -116,6 +117,7 @@ impl GuessResult {
     }
 }
 
+#[derive(Debug)]
 pub struct Guess {
     pub history: Vec<GuessResult>,
 }

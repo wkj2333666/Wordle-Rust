@@ -3,8 +3,9 @@ use std::collections::BTreeMap;
 use wordle_lib::game::{CharStatus, Guess, MAX_ATTEMPTS, WORD_LENGTH};
 use yew::prelude::*;
 
+#[derive(Debug)]
 pub struct Board {
-    lines: [Line<WORD_LENGTH>; MAX_ATTEMPTS],
+    pub lines: [Line<WORD_LENGTH>; MAX_ATTEMPTS],
 }
 
 impl Board {
@@ -38,8 +39,13 @@ impl Board {
     pub fn clear(&mut self) {
         *self = Self::new();
     }
+
+    pub fn update_char(&mut self, row: usize, col: usize, letter: Option<char>) {
+        self.lines[row].cells[col].0 = letter;
+    }
 }
 
+#[derive(Debug)]
 pub struct Keyboard {
     line1: Line<10>,
     line2: Line<9>,

@@ -3,9 +3,10 @@ use crate::board::Keyboard;
 use crate::buffer::GuessInputBuffer;
 use crate::msg::WordleMsg;
 use wordle_lib::Wordle;
+use wordle_lib::game::WORD_LENGTH;
 use yew::prelude::*;
 
-#[derive()]
+#[derive(Debug)]
 pub struct App {
     board: Board,
     keyboard: Keyboard,
@@ -55,6 +56,7 @@ impl Component for App {
             WordleMsg::KeyPress(key) => self.get_one_key_input(&key),
             // WordleMsg::GuessInput(guess) => self.handle_one_guess(),
         };
+        dbg!(self);
         true
     }
 }
@@ -65,9 +67,9 @@ impl App {
         match key.key().as_str() {
             // "Enter" => link.send_message(WordleMsg::GuessInput(self.buffer.content.clone())),
             "Enter" => self.input_one_guess(),
-            "Backspace" => self.buffer.pop(),
+            "Backspace" => self.buffer_pop(),
             _ if key.key().len() == 1 && key.key().chars().next().unwrap().is_alphabetic() => {
-                self.buffer.push(key.key().chars().next().unwrap())
+                self.buffer_push(key.key().chars().next().unwrap());
             }
             _ => {}
         }
@@ -102,5 +104,20 @@ impl App {
 
         self.board.clear();
         self.keyboard.clear();
+    }
+
+    fn buffer_push(&mut self, c: char) {
+        if self.buffer.len() < WORD_LENGTH {
+            self.board
+                .update_char(self.attempts, self.buffer.len(), Some(c));
+            self.buffer.push(c);
+        }
+    }
+
+    fn buffer_pop(&mut self) {
+        if self.buffer.pop().is_some() {
+            self.board
+                .update_char(self.attempts, self.buffer.len(), None);
+        }
     }
 }

@@ -2,6 +2,7 @@ use wordle_lib::game::WORD_LENGTH;
 use yew::prelude::*;
 
 // #[derive(Properties, PartialEq, Default)]
+#[derive(Debug)]
 pub struct GuessInputBuffer {
     pub content: String,
 }
@@ -14,13 +15,11 @@ impl GuessInputBuffer {
     }
 
     pub fn push(&mut self, new_char: char) {
-        if self.content.len() < WORD_LENGTH {
-            self.content.push(new_char.to_ascii_lowercase());
-        }
+        self.content.push(new_char.to_ascii_lowercase());
     }
 
-    pub fn pop(&mut self) {
-        self.content.pop();
+    pub fn pop(&mut self) -> Option<char> {
+        self.content.pop()
     }
 
     pub fn is_valid(&self) -> bool {
@@ -29,5 +28,9 @@ impl GuessInputBuffer {
 
     pub fn clear(&mut self) {
         self.content.clear();
+    }
+
+    pub fn len(&self) -> usize {
+        self.content.len()
     }
 }

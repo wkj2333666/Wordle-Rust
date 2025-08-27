@@ -23,6 +23,7 @@ use args::Args;
 use chrono::Local;
 
 #[cfg(target_arch = "wasm32")]
+#[derive(Debug)]
 pub struct Wordle {
     is_tty: bool,
     args: Args,
