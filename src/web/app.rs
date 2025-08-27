@@ -56,22 +56,21 @@ impl Component for App {
             WordleMsg::KeyPress(key) => self.get_one_key_input(&key),
             // WordleMsg::GuessInput(guess) => self.handle_one_guess(),
         };
-        dbg!(self);
         true
     }
 }
 
 impl App {
     fn get_one_key_input(&mut self, key: &KeyboardEvent) {
-        // let link = ctx.link();
-        match key.key().as_str() {
-            // "Enter" => link.send_message(WordleMsg::GuessInput(self.buffer.content.clone())),
-            "Enter" => self.input_one_guess(),
-            "Backspace" => self.buffer_pop(),
-            _ if key.key().len() == 1 && key.key().chars().next().unwrap().is_alphabetic() => {
-                self.buffer_push(key.key().chars().next().unwrap());
-            }
-            _ => {}
+        if key.key() == "Enter" {
+            self.input_one_guess();
+            log::debug!("Enter pressed");
+        } else if key.key() == "Backspace" {
+            self.buffer_pop();
+            log::debug!("Backspace pressed");
+        } else if key.key().len() == 1 && key.key().chars().next().unwrap().is_alphabetic() {
+            self.buffer_push(key.key().chars().next().unwrap());
+            log::debug!("{} pressed", key.key());
         }
     }
 
