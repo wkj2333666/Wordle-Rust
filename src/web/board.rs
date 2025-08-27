@@ -34,6 +34,10 @@ impl Board {
             .collect::<Vec<_>>()
             .into();
     }
+
+    pub fn clear(&mut self) {
+        *self = Self::new();
+    }
 }
 
 pub struct Keyboard {
@@ -68,6 +72,10 @@ impl Keyboard {
             .update_from_map(&cli_guess_results.history.last().unwrap().keyboard);
         self.line3
             .update_from_map(&cli_guess_results.history.last().unwrap().keyboard);
+    }
+
+    pub fn clear(&mut self) {
+        *self = Self::new();
     }
 }
 

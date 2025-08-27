@@ -13,6 +13,7 @@ impl GameStat {
     }
 }
 
+/// Record statical data
 pub struct GameRecorder {
     games: Vec<GameStat>,
     tried_words: HashMap<String, u32>,
@@ -94,6 +95,7 @@ pub struct SingleGameData {
     pub guesses: Vec<String>,
 }
 
+/// Persistent storage
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GameData {
     #[serde(default)]

@@ -1,0 +1,6 @@
+use yew::prelude::*;
+
+pub enum WordleMsg {
+    KeyPress(KeyboardEvent),
+    // GuessInput(String),
+}

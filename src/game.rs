@@ -190,6 +190,11 @@ impl Guess {
 
         true
     }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn clear(&mut self) {
+        self.history.clear();
+    }
 }
 
 pub struct AnsChecker<'a> {

@@ -5,9 +5,9 @@ mod recorder;
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::args::Config;
-use crate::game::{AnsChecker, Guess, MAX_ATTEMPTS};
+#[cfg(not(target_arch = "wasm32"))]
 use crate::recorder::SingleGameData;
-use args::Args;
+#[cfg(not(target_arch = "wasm32"))]
 use clap::Parser;
 #[cfg(not(target_arch = "wasm32"))]
 use std::collections::HashSet;
@@ -16,34 +16,20 @@ use std::fs::File;
 #[cfg(not(target_arch = "wasm32"))]
 use std::io::{self, BufRead, BufReader};
 
+use crate::game::{AnsChecker, Guess, MAX_ATTEMPTS};
+use args::Args;
+
 #[cfg(target_arch = "wasm32")]
 use chrono::Local;
-
-#[cfg(target_arch = "wasm32")]
-struct WebInterface {
-    guess: String,
-    result: String,
-    win: Option<bool>,
-}
-
-#[cfg(target_arch = "wasm32")]
-impl WebInterface {
-    fn new() -> Self {
-        WebInterface {
-            guess: String::new(),
-            result: String::new(),
-            win: None,
-        }
-    }
-}
 
 #[cfg(target_arch = "wasm32")]
 pub struct Wordle {
     is_tty: bool,
     args: Args,
-    game_recorder: recorder::GameRecorder,
+    pub game_recorder: recorder::GameRecorder,
     game_data: recorder::GameData,
-    web_interface: WebInterface,
+    pub final_words: Vec<String>,
+    pub acceptable_words: Vec<String>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -67,7 +53,9 @@ impl Wordle {
 
     #[cfg(target_arch = "wasm32")]
     pub fn new() -> Self {
-        Wordle {
+        use crate::builtin_words::{ACCEPTABLE, FINAL};
+
+        let mut new_self = Wordle {
             is_tty: atty::is(atty::Stream::Stdout),
             args: Args {
                 word: None,
@@ -90,8 +78,13 @@ impl Wordle {
             },
             game_recorder: recorder::GameRecorder::new(),
             game_data: recorder::GameData::new(),
-            web_interface: WebInterface::new(),
-        }
+
+            final_words: FINAL.iter().map(|word| word.to_string()).collect(),
+            acceptable_words: ACCEPTABLE.iter().map(|word| word.to_string()).collect(),
+        };
+
+        game::init_shuffle(new_self.args.seed.unwrap(), &mut new_self.final_words);
+        new_self
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -203,7 +196,7 @@ impl Wordle {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn gen_answer(&self, final_words: &Vec<String>) -> String {
+    pub fn gen_answer(&self, final_words: &Vec<String>) -> String {
         final_words[self.args.day.unwrap() - 1 % final_words.len()].to_string()
     }
 
@@ -241,7 +234,20 @@ impl Wordle {
 
         // Guess until exceeds MAX_ATTEMPTS
         while attempt < MAX_ATTEMPTS {
-            game_win = self.handle_one_guess(acceptable, &mut guess_results, &ans);
+            // input guess
+            let guess = loop {
+                let mut tmp: String = String::new();
+                io::stdin().read_line(&mut tmp).unwrap();
+                tmp = tmp.trim().to_string();
+                if acceptable.contains(&tmp)
+                    && guess_results.difficult_check(self.args.difficult, &tmp)
+                {
+                    break tmp;
+                }
+                println!("INVALID");
+            };
+
+            game_win = self.handle_one_guess(&mut guess_results, &ans, &guess);
 
             attempt += 1;
             if game_win {
@@ -262,32 +268,15 @@ impl Wordle {
         }
     }
 
-    // temporary
-    #[cfg(not(target_arch = "wasm32"))]
-    fn handle_one_guess(
-        &mut self,
-        acceptable: &Vec<String>,
-        guess_results: &mut Guess,
-        ans: &str,
-    ) -> bool {
-        // input guess
-        let guess = loop {
-            let mut tmp: String = String::new();
-            io::stdin().read_line(&mut tmp).unwrap();
-            tmp = tmp.trim().to_string();
-            if acceptable.contains(&tmp) && guess_results.difficult_check(self.args.difficult, &tmp)
-            {
-                break tmp;
-            }
-            println!("INVALID");
-        };
-        self.game_recorder.add_tried_word(guess.clone());
+    pub fn handle_one_guess(&mut self, guess_results: &mut Guess, ans: &str, guess: &str) -> bool {
+        self.game_recorder.add_tried_word(guess.to_string());
 
         // check guess
         guess_results.append(&guess);
         let game_win = AnsChecker::new(&ans).check(&mut guess_results.history.last_mut().unwrap());
 
         // render output
+        #[cfg(not(target_arch = "wasm32"))]
         guess_results.print(self.is_tty);
 
         game_win
