@@ -201,6 +201,11 @@ impl Wordle {
         final_words[self.args.day.unwrap() - 1 % final_words.len()].to_string()
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub fn day_increment(&mut self) {
+        *self.args.day.as_mut().unwrap() += 1;
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
     fn gen_answer(&self, final_words: &Vec<String>) -> String {
         if self.args.random {

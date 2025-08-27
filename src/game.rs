@@ -15,6 +15,17 @@ pub enum CharStatus {
     Unknown,
 }
 
+impl CharStatus {
+    fn to_char(&self) -> char {
+        match *self {
+            CharStatus::Correct => 'G',
+            CharStatus::Misplaced => 'Y',
+            CharStatus::Wrong => 'R',
+            CharStatus::Unknown => 'X',
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct GuessResult {
     pub content: String,
@@ -114,6 +125,11 @@ impl GuessResult {
             }
         }
         println!();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn to_string(&self) -> String {
+        self.status.iter().map(|status| status.to_char()).collect()
     }
 }
 
