@@ -10,6 +10,50 @@ body {
     margin: 0;
 }
 
+/*
+ * Title (h1)
+ * Styles for the game's main heading.
+ */
+h1 {
+    font-size: 3rem; /* Large and prominent */
+    font-weight: bold;
+    color: #f8f8f8; /* A bright off-white */
+    letter-spacing: 0.1em; /* Adds some space between letters */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
+}
+
+.btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-button {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #538d4e; /* Wordle's classic green */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition:
+        background-color 0.3s ease,
+        transform 0.1s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover and active states */
+.game-button:hover {
+    background-color: #6aaa64; /* A slightly lighter green on hover */
+    transform: translateY(-2px);
+}
+
+.game-button:active {
+    background-color: #4c8247; /* A darker green when clicked */
+    transform: translateY(0);
+}
+
 .line {
     display: flex;
     justify-content: center;
