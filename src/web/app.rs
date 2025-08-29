@@ -65,7 +65,7 @@ impl Component for App {
                             html! {
                                 <div class="btn-container">
                                     <button class="game-button" onclick={link.callback(|_| WordleMsg::StartNew)}>
-                                        { format!("You lose! The answer was \"{}\". Click to guess next word!", self.answer) }
+                                        { format!("You lose! The answer was \"{}\". Click to guess next word!", self.ans) }
                                     </button>
                                 </div>
                             }
